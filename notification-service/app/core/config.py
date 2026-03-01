@@ -1,13 +1,9 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    SECRET_KEY: str
-    ALGORITHM: str
-    MONGODB_URL: str
-    MONGODB_DB: str
-    REDIS_URL: str
     KAFKA_BOOTSTRAP_SERVERS: str
     KAFKA_TOPIC: str
+    KAFKA_GROUP_ID: str
 
     class Config:
         env_file = ".env"

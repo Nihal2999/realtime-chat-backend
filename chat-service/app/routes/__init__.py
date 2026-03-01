@@ -11,12 +11,12 @@ from app.services import (
 from app.schemas import RoomCreate
 import redis.asyncio as aioredis
 from app.core.config import settings
+from app.kafka import produce_message
 import json
 
 router = APIRouter(tags=["Chat"])
 security = HTTPBearer()
 
-# Connection Manager to track active WebSocket connections
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[str, list[WebSocket]] = {}
@@ -37,7 +37,6 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# Dependency to get current user from token
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     payload = decode_access_token(token)
@@ -45,7 +44,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     return payload
 
-# REST Routes
 @router.post("/rooms")
 async def create_chat_room(room_data: RoomCreate, user=Depends(get_current_user)):
     room = await create_room(room_data.name, room_data.members)
@@ -61,14 +59,12 @@ async def get_messages(room_id: str, user=Depends(get_current_user)):
     messages = await get_room_messages(room_id)
     return messages
 
-# WebSocket Route
 @router.websocket("/ws/{room_id}")
 async def websocket_endpoint(
     room_id: str,
     websocket: WebSocket,
     token: str = Query(...)
 ):
-    # Authenticate via token query param
     payload = decode_access_token(token)
     if not payload:
         await websocket.close(code=1008)
@@ -77,7 +73,6 @@ async def websocket_endpoint(
     sender_id = payload.get("sub")
     sender_username = payload.get("email")
 
-    # Check room exists
     room = await get_room(room_id)
     if not room:
         await websocket.close(code=1008)
@@ -85,7 +80,6 @@ async def websocket_endpoint(
 
     await manager.connect(room_id, websocket)
 
-    # Set user online in Redis
     redis = aioredis.from_url(settings.REDIS_URL)
     await redis.set(f"online:{sender_id}", "true", ex=3600)
 
@@ -93,6 +87,17 @@ async def websocket_endpoint(
         while True:
             data = await websocket.receive_text()
             message = await save_message(room_id, sender_id, sender_username, data)
+
+            # Produce Kafka event
+            await produce_message({
+                "event": "new_message",
+                "room_id": room_id,
+                "sender_id": sender_id,
+                "sender_username": sender_username,
+                "content": data,
+                "message_id": message["id"]
+            })
+
             await manager.broadcast(room_id, message)
     except WebSocketDisconnect:
         manager.disconnect(room_id, websocket)
