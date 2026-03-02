@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+        - name: chat-service
+          image: realtime-chat-backend-chat-service:latest
+          imagePullPolicy: Never
+          env:
+            - name: SECRET_KEY
+              value: your_super_secret_key_here
+            - name: ALGORITHM
+              value: HS256
+            - name: MONGODB_URL
+              value: mongodb://mongodb:27017
+            - name: MONGODB_DB
+              value: chat_db
+            - name: REDIS_URL
+              value: redis://redis:6379
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+            - name: KAFKA_TOPIC
+              value: chat-messages
+          ports:
+            - containerPort: 8002
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+spec:
+  selector:
+    app: chat-service
+  type: NodePort
+  ports:
+    - port: 8002
+      targetPort: 8002
+      nodePort: 30002
