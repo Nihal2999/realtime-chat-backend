@@ -99,6 +99,7 @@ resource "aws_instance" "app" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.app.id]
+  key_name               = "realtime-chat-key"
 
   tags = {
     Name = "${var.app_name}-server"
@@ -116,4 +117,14 @@ resource "aws_s3_bucket" "app" {
 
 resource "random_id" "bucket_suffix" {
   byte_length = 4
+}
+
+# Elastic IP
+resource "aws_eip" "app" {
+  instance = aws_instance.app.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "${var.app_name}-eip"
+  }
 }
