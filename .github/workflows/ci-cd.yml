@@ -87,10 +87,10 @@ jobs:
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/realtime-chat-backend
+            cd /home/ubuntu/realtime-chat-backend
             git pull origin main
             docker-compose down
             docker-compose pull
