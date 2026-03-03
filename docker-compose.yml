@@ -2,10 +2,13 @@ services:
   auth-db:
     image: postgres:15
     container_name: auth_db
+    mem_limit: 200m
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: auth_db
+      POSTGRES_SHARED_BUFFERS: 64MB
+      POSTGRES_WORK_MEM: 8MB
     ports:
       - "5432:5432"
     volumes:
@@ -14,6 +17,8 @@ services:
   mongodb:
     image: mongo:6
     container_name: chat_db
+    mem_limit: 300m
+    command: mongod --wiredTigerCacheSizeGB=0.2
     ports:
       - "27017:27017"
     volumes:
@@ -22,6 +27,8 @@ services:
   redis:
     image: redis:7
     container_name: redis_insights
+    mem_limit: 100m
+    command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
     volumes:
@@ -30,6 +37,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
+    mem_limit: 150m
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -43,6 +51,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
+    mem_limit: 350m
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -66,6 +75,7 @@ services:
   auth-service:
     build: ./auth-service
     container_name: auth_service
+    mem_limit: 150m
     ports:
       - "8001:8001"
     environment:
@@ -79,6 +89,7 @@ services:
   chat-service:
     build: ./chat-service
     container_name: chat_service
+    mem_limit: 150m
     ports:
       - "8002:8002"
     environment:
@@ -98,6 +109,7 @@ services:
   notification-service:
     build: ./notification-service
     container_name: notification_service
+    mem_limit: 150m
     ports:
       - "8003:8003"
     environment:

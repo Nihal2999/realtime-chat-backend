@@ -92,6 +92,26 @@ jobs:
           script: |
             cd /home/ubuntu/realtime-chat-backend
             git pull origin main
+
+            echo "Stopping existing containers..."
             docker-compose down
+
+            echo "Pulling latest images..."
             docker-compose pull
-            docker-compose up -d
+
+            echo "Starting databases first..."
+            docker-compose up -d auth-db mongodb redis
+            sleep 20
+
+            echo "Starting Zookeeper..."
+            docker-compose up -d zookeeper
+            sleep 20
+
+            echo "Starting Kafka..."
+            docker-compose up -d kafka
+            sleep 40
+
+            echo "Starting application services..."
+            docker-compose up -d auth-service chat-service notification-service
+
+            echo "Deployment completed successfully!"
