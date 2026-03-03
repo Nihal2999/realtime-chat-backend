@@ -1,5 +1,3 @@
-from datetime import datetime
-
 def message_entity(message: dict) -> dict:
     return {
         "id": str(message["_id"]),
