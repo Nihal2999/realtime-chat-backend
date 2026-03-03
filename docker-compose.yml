@@ -86,6 +86,7 @@ services:
       REDIS_URL: redis://redis:6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_TOPIC: chat-messages
+    restart: always
     depends_on:
       kafka:
         condition: service_healthy
@@ -99,6 +100,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_TOPIC: chat-messages
       KAFKA_GROUP_ID: notification-group
+    restart: always
     depends_on:
       kafka:
         condition: service_healthy
