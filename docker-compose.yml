@@ -88,8 +88,9 @@ services:
       KAFKA_TOPIC: chat-messages
     restart: always
     depends_on:
-      kafka:
-        condition: service_healthy
+      - kafka
+      - mongodb
+      - redis
 
   notification-service:
     build: ./notification-service
@@ -102,8 +103,7 @@ services:
       KAFKA_GROUP_ID: notification-group
     restart: always
     depends_on:
-      kafka:
-        condition: service_healthy
+      - kafka
 
 volumes:
   auth_db_data:
