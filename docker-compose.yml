@@ -11,6 +11,7 @@ services:
       POSTGRES_WORK_MEM: 8MB
     ports:
       - "5432:5432"
+    restart: unless-stopped
     volumes:
       - auth_db_data:/var/lib/postgresql/data
 
@@ -21,6 +22,7 @@ services:
     command: mongod --wiredTigerCacheSizeGB=0.3
     ports:
       - "27017:27017"
+    restart: unless-stopped
     volumes:
       - mongo_data:/data/db
 
@@ -31,6 +33,7 @@ services:
     command: redis-server --maxmemory 100mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
+    restart: unless-stopped
     volumes:
       - redis_data:/data
 
@@ -42,6 +45,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       KAFKA_HEAP_OPTS: "-Xmx128M -Xms64M"
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 10s
@@ -65,7 +69,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_HEAP_OPTS: "-Xmx256M -Xms128M"
-    restart: always
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 15s
@@ -83,6 +87,7 @@ services:
       SECRET_KEY: your_super_secret_key_here
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
+    restart: unless-stopped
     depends_on:
       - auth-db
 
@@ -100,7 +105,7 @@ services:
       REDIS_URL: redis://redis:6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_TOPIC: chat-messages
-    restart: always
+    restart: unless-stopped
     depends_on:
       - kafka
       - mongodb
@@ -116,7 +121,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_TOPIC: chat-messages
       KAFKA_GROUP_ID: notification-group
-    restart: always
+    restart: unless-stopped
     depends_on:
       - kafka
 
