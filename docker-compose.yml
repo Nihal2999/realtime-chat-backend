@@ -18,7 +18,7 @@ services:
     image: mongo:6
     container_name: chat_db
     mem_limit: 300m
-    command: mongod --wiredTigerCacheSizeGB=0.2
+    command: mongod --wiredTigerCacheSizeGB=0.3
     ports:
       - "27017:27017"
     volumes:
